@@ -1,0 +1,53 @@
+import math
+
+Vector = tuple[int, int, int]
+Circuit = set[Vector]
+
+
+def distance(p: Vector, q: Vector) -> float:
+    return math.sqrt((p[0] - q[0]) ** 2 + (p[1] - q[1]) ** 2 + (p[2] - q[2]) ** 2)
+
+
+def find_circuits_containing_any(circuits: list[Circuit], vectors: set[Vector]) -> set[Circuit]:
+    result = []
+
+    for circuit in circuits:
+        for vector in vectors:
+            if vector in circuit and circuit not in result:
+                result.append(circuit)
+    return result
+
+
+with open("input.txt", "r") as file:
+    lines = [l.strip() for l in file.readlines()]
+    vectors = [(int(l.split(",")[0]), int(l.split(",")[1]), int(l.split(",")[2])) for l in lines]
+
+distances = []
+
+for i in range(len(vectors)):
+    for j in range(i + 1, len(vectors)):
+        distances.append((set([vectors[i], vectors[j]]), distance(vectors[i], vectors[j])))
+
+distances.sort(key=lambda d: d[1])
+
+circuits = []
+
+for i in range(1000):
+    pair = distances[i][0]
+    existing_circuits = find_circuits_containing_any(circuits, pair)
+
+    if len(existing_circuits) == 0:
+        circuits.append(set(pair))
+    else:
+        new_circuit = set()
+        for c in existing_circuits:
+            new_circuit = new_circuit | c | pair
+            circuits.remove(c)
+        circuits.append(new_circuit)
+
+result = 1        
+circuits.sort(key=lambda c: len(c), reverse=True)
+for i in range(3):
+    result *= len(circuits[i])
+
+print(result)
